@@ -1,0 +1,52 @@
+
+name: Compiler APK KUMBA CAST
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "le-prix-de-la-foi-corrige.zip"
+      - ".github/workflows/main.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Télécharger le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Installer Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Extraire le projet
+        run: |
+          unzip -o le-prix-de-la-foi-corrige.zip -d projet
+          echo "Contenu de l'archive :"
+          find projet -maxdepth 3 -type f | head -80
+
+      - name: Compiler APK
+        run: |
+          cd projet
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          elif [ -f gradlew.bat ]; then
+            gradle assembleDebug
+          else
+            gradle assembleDebug
+          fi
+
+      - name: Publier APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KUMBA-CAST-LE-PRIX-DE-LA-FOI
+          path: |
+            projet/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
